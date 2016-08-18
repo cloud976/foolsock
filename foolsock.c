@@ -52,6 +52,7 @@ const zend_function_entry foolsock_methods[] = {
 	ZEND_ME(foolsock,__construct,NULL,ZEND_ACC_PUBLIC)
 	ZEND_ME(foolsock,pconnect,NULL,ZEND_ACC_PUBLIC)
 	ZEND_ME(foolsock,read,NULL,ZEND_ACC_PUBLIC)
+	ZEND_ME(foolsock,readLine,NULL,ZEND_ACC_PUBLIC)
 	ZEND_ME(foolsock,write,NULL,ZEND_ACC_PUBLIC)
 	ZEND_ME(foolsock,pclose,NULL,ZEND_ACC_PUBLIC)
 	PHP_FE_END	/* Must be the last line in foolconf_functions[] */
@@ -176,6 +177,7 @@ static int get_stream(foolsock_t* f_obj TSRMLS_DC)
 
 	return 1;
 }
+
 /*}}}*/
 
 /*{{{ public function FoolSock::__construct(string $host, string $port)
@@ -380,6 +382,62 @@ PHP_METHOD(foolsock,read)
 	}
 	response_buf[r] = '\0';
 	RETURN_STRINGL(response_buf,r,0);
+}
+/*}}}*/
+
+/*{{{ public function FoolSock::readLine()
+ */
+PHP_METHOD(foolsock,readLine)
+{
+	long size;
+	unsigned long line_length;
+	foolsock_t* f_obj;
+	char* response_buf;
+	zval* resource;
+	int resource_type;
+
+	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"l",&size) == FAILURE){
+		RETURN_FALSE;
+	}
+
+	if(size <= 0){
+		RETURN_TRUE;
+	}
+
+	resource = zend_read_property(foolsock_ce,getThis(),ZEND_STRL(CLASS_PROPERTY_RESOURCE),1 TSRMLS_CC);
+	if(resource == NULL){
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid Resource");
+		RETURN_FALSE;
+	}
+
+	f_obj = (foolsock_t*)zend_list_find(Z_LVAL_P(resource),&resource_type TSRMLS_CC);
+
+	if(f_obj == NULL){
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid Resource");
+		RETURN_FALSE;
+	}
+
+	if(resource_type != le_foolsock){
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid Resource Type");
+		RETURN_FALSE;
+	}
+	
+	if(f_obj->stream == NULL){
+		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Socket Not Connected");
+		RETURN_FALSE;
+	}
+
+	response_buf = emalloc(size + 1);
+
+	php_stream_get_line(f_obj->stream,response_buf,size,&line_length);
+	if(line_length == 0){
+		if(errno == EAGAIN || errno == EINPROGRESS){
+			RETURN_TRUE;
+		}
+		RETURN_FALSE;
+	}
+	response_buf[line_length] = '\0';
+	RETURN_STRINGL(response_buf,line_length,0);
 }
 /*}}}*/
 
