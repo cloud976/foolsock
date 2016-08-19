@@ -70,14 +70,14 @@ PHP_METHOD(foolsock,pclose);
 enum sock_status {
   SOCK_IN_USE=1,
   SOCK_IDLE=0
-}
+};
 
 typedef struct _foolsock_s{
 	php_stream* stream;
 	char*       host;
 	int         port;
 	long	    timeoutms;
-	sock_status		    status;
+	enum sock_status		    status;
 }foolsock_t;
 
 

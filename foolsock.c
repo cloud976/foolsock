@@ -148,7 +148,7 @@ static int get_stream(foolsock_t* f_obj TSRMLS_DC)
 
 	spprintf(&hash_key, 0, "foolsock:%s:%d", f_obj->host,f_obj->port);
 
-	if (f_obj.status == sock_status.SOCK_IN_USE) {
+	if (f_obj->status == SOCK_IN_USE) {
 		php_stream_pclose(f_obj->stream);
 		f_obj->stream = NULL;
 	}
@@ -328,7 +328,7 @@ PHP_METHOD(foolsock,write)
 		RETURN_FALSE;
 	}
 
-	f_obj->status = sock_status.SOCK_IN_USE;
+	f_obj->status = SOCK_IN_USE;
 	res = php_stream_write(f_obj->stream,msg,msg_len);
 	if(res != msg_len){
 		RETURN_FALSE;
@@ -344,10 +344,6 @@ PHP_METHOD(foolsock,finish)
 	zval* resource;
 	int resource_type;
 	foolsock_t* f_obj;
-
-	if(zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC,"|l",&timeoutms) == FAILURE){
-		RETURN_FALSE;
-	}
 
 	resource = zend_read_property(foolsock_ce,getThis(),ZEND_STRL(CLASS_PROPERTY_RESOURCE),1 TSRMLS_CC);
 	if(resource == NULL){
@@ -366,7 +362,7 @@ PHP_METHOD(foolsock,finish)
 		php_error_docref(NULL TSRMLS_CC, E_WARNING, "Invalid Resource Type");
 		RETURN_FALSE;
 	}
-	f_obj->status = sock_status.SOCK_IDLE;
+	f_obj->status = SOCK_IDLE;
 	
 	RETURN_TRUE;
 }
