@@ -54,6 +54,7 @@ PHP_METHOD(foolsock,pconnect);
 PHP_METHOD(foolsock,read);
 PHP_METHOD(foolsock,readLine);
 PHP_METHOD(foolsock,write);
+PHP_METHOD(foolsock,finish);
 PHP_METHOD(foolsock,pclose);
 
 #ifdef ZTS
@@ -66,13 +67,19 @@ PHP_METHOD(foolsock,pclose);
 
 #define CLASS_PROPERTY_RESOURCE "_resource"
 
+enum sock_status {
+  SOCK_IN_USE=1,
+  SOCK_IDLE=0
+}
+
 typedef struct _foolsock_s{
 	php_stream* stream;
 	char*       host;
 	int         port;
 	long	    timeoutms;
-	int		    status;
+	sock_status		    status;
 }foolsock_t;
+
 
 /*
  * Local variables:
