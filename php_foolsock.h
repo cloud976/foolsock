@@ -56,6 +56,7 @@ PHP_METHOD(foolsock,readLine);
 PHP_METHOD(foolsock,write);
 PHP_METHOD(foolsock,finish);
 PHP_METHOD(foolsock,pclose);
+PHP_METHOD(foolsock,test);
 
 #ifdef ZTS
 #define FOOLSOCK_G(v) TSRMG(foolsock_globals_id, zend_foolsock_globals *, v)
